@@ -41,7 +41,14 @@ function extract(html, base) {
   return { title: title ? title.slice(0, 200) : null, image: image || null };
 }
 
+const ALLOWED = /^https?:\/\/(www\.)?somedaytobuy\.com$/i;
+
 export const handler = async (event) => {
+  const h = event?.headers || {};
+  const origin = h.origin || '';
+  let refOrigin = '';
+  try { refOrigin = h.referer ? new URL(h.referer).origin : ''; } catch {}
+  if (!ALLOWED.test(origin) && !ALLOWED.test(refOrigin)) return json(403, { error: 'no permitido' });
   const target = event?.queryStringParameters?.url;
   let u;
   try { u = new URL(target); } catch { return json(400, { error: 'url inválida' }); }
