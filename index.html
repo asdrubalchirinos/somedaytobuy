@@ -10,8 +10,8 @@
   :root[data-theme="dark"]{color-scheme:dark}
   :root[data-theme="light"]{color-scheme:light;--bg:#f6f7f9;--card:#ffffff;--line:#d9dde4;--input:#ffffff;--txt:#161a21;--mut:#4a5160;--ph:#6b7280;--acc:#1f7a57;--acc-txt:#ffffff;--lock:#b8661a;--dis:#e6e9ee;--dis-txt:#4a5160;--track:#e3e6eb;--ghost:#b9bfca}
   @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#f6f7f9;--card:#ffffff;--line:#d9dde4;--input:#ffffff;--txt:#161a21;--mut:#4a5160;--ph:#6b7280;--acc:#1f7a57;--acc-txt:#ffffff;--lock:#b8661a;--dis:#e6e9ee;--dis-txt:#4a5160;--track:#e3e6eb;--ghost:#b9bfca}}
-  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
   .theme{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--card);flex-shrink:0}
+  footer p{margin:0}
   .theme button{background:transparent;color:var(--mut);padding:6px 12px;border-radius:999px;font-size:.85rem;font-weight:600}
   .theme button[aria-pressed="true"]{background:var(--txt);color:var(--bg)}
   *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);font-size:17px;line-height:1.5}
@@ -29,19 +29,12 @@
   .bar{height:5px;background:var(--track);border-radius:4px;margin-top:8px;overflow:hidden}.bar i{display:block;height:100%;background:var(--lock)}
   .ready .bar i{background:var(--acc)}.actions{display:flex;gap:6px;flex-shrink:0}
   .ghost{background:transparent;color:var(--txt);border:1px solid var(--ghost)}
-  footer{color:var(--mut);font-size:.9rem;margin-top:40px;text-align:center}
+  footer{display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--mut);font-size:.9rem;margin-top:40px;text-align:center}
 </style>
 </head>
 <body>
 <main>
-  <div class="top">
-    <h1>Someday to buy</h1>
-    <div class="theme" role="group" aria-label="Tema">
-      <button type="button" data-theme-set="system" title="Usar el tema del sistema">Sistema</button>
-      <button type="button" data-theme-set="light" title="Siempre claro">Claro</button>
-      <button type="button" data-theme-set="dark" title="Siempre oscuro">Oscuro</button>
-    </div>
-  </div>
+  <h1>Someday to buy</h1>
   <p class="sub">Apunta aquí lo que te tienta comprar. Si en 30 días todavía lo quieres, se desbloquea el botón de comprar.</p>
   <form id="f">
     <input id="name" placeholder="¿Qué quieres comprar?" required>
@@ -51,7 +44,14 @@
   </form>
   <div class="stats"><span id="s-wait"></span><span id="s-skip"></span></div>
   <div id="list"></div>
-  <footer>Hecho con un dominio comprado por impulso. Primera víctima de su propia regla.</footer>
+  <footer>
+    <div class="theme" role="group" aria-label="Tema">
+      <button type="button" data-theme-set="system" title="Usar el tema del sistema">Sistema</button>
+      <button type="button" data-theme-set="light" title="Siempre claro">Claro</button>
+      <button type="button" data-theme-set="dark" title="Siempre oscuro">Oscuro</button>
+    </div>
+    <p>Hecho con un dominio comprado por impulso. Primera víctima de su propia regla.</p>
+  </footer>
 </main>
 <script>
 const DAYS=30, DAY=864e5, KEY='somedaytobuy';
