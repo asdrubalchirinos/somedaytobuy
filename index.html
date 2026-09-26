@@ -3,10 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>(function(){var t=localStorage.getItem("somedaytobuy-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t;})();</script>
 <title>Someday to buy · algún día lo compro</title>
 <style>
   :root{color-scheme:light dark;--bg:#0f1115;--card:#1c2029;--line:#2e3441;--input:#12151b;--txt:#f2f3f5;--mut:#b4b9c6;--ph:#9aa0ad;--acc:#7cc4a4;--acc-txt:#0f1115;--lock:#e0a458;--dis:#323846;--dis-txt:#c3c7d1;--track:#323846;--ghost:#4a5263}
-  @media (prefers-color-scheme: light){:root{--bg:#f6f7f9;--card:#ffffff;--line:#d9dde4;--input:#ffffff;--txt:#161a21;--mut:#4a5160;--ph:#6b7280;--acc:#1f7a57;--acc-txt:#ffffff;--lock:#b8661a;--dis:#e6e9ee;--dis-txt:#4a5160;--track:#e3e6eb;--ghost:#b9bfca}}
+  :root[data-theme="dark"]{color-scheme:dark}
+  :root[data-theme="light"]{color-scheme:light;--bg:#f6f7f9;--card:#ffffff;--line:#d9dde4;--input:#ffffff;--txt:#161a21;--mut:#4a5160;--ph:#6b7280;--acc:#1f7a57;--acc-txt:#ffffff;--lock:#b8661a;--dis:#e6e9ee;--dis-txt:#4a5160;--track:#e3e6eb;--ghost:#b9bfca}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#f6f7f9;--card:#ffffff;--line:#d9dde4;--input:#ffffff;--txt:#161a21;--mut:#4a5160;--ph:#6b7280;--acc:#1f7a57;--acc-txt:#ffffff;--lock:#b8661a;--dis:#e6e9ee;--dis-txt:#4a5160;--track:#e3e6eb;--ghost:#b9bfca}}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+  .theme{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--card);flex-shrink:0}
+  .theme button{background:transparent;color:var(--mut);padding:6px 12px;border-radius:999px;font-size:.85rem;font-weight:600}
+  .theme button[aria-pressed="true"]{background:var(--txt);color:var(--bg)}
   *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);font-size:17px;line-height:1.5}
   main{max-width:720px;margin:0 auto;padding:40px 20px}
   h1{margin:0;font-size:2rem}p.sub{color:var(--mut);margin:.4rem 0 2rem}
@@ -27,7 +34,14 @@
 </head>
 <body>
 <main>
-  <h1>Someday to buy</h1>
+  <div class="top">
+    <h1>Someday to buy</h1>
+    <div class="theme" role="group" aria-label="Tema">
+      <button type="button" data-theme-set="system" title="Usar el tema del sistema">Sistema</button>
+      <button type="button" data-theme-set="light" title="Siempre claro">Claro</button>
+      <button type="button" data-theme-set="dark" title="Siempre oscuro">Oscuro</button>
+    </div>
+  </div>
   <p class="sub">Apunta aquí lo que te tienta comprar. Si en 30 días todavía lo quieres, se desbloquea el botón de comprar.</p>
   <form id="f">
     <input id="name" placeholder="¿Qué quieres comprar?" required>
@@ -74,6 +88,14 @@ document.getElementById('list').onclick=e=>{
 if(!st.items.length && !localStorage.getItem(KEY+'-seeded')){
   st.items.push({id:'demo',name:'Edifier R1280DB (ejemplo)',price:3099,url:'https://www.amazon.com.mx/dp/B06XGG6MFV',added:Date.now()-12*DAY});
   localStorage.setItem(KEY+'-seeded','1');save();}
+const TKEY='somedaytobuy-theme';
+function applyTheme(t){
+  if(t==='light'||t==='dark'){document.documentElement.dataset.theme=t;localStorage.setItem(TKEY,t);}
+  else{delete document.documentElement.dataset.theme;localStorage.removeItem(TKEY);t='system';}
+  document.querySelectorAll('[data-theme-set]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.themeSet===t));
+}
+document.querySelectorAll('[data-theme-set]').forEach(b=>b.onclick=()=>applyTheme(b.dataset.themeSet));
+applyTheme(localStorage.getItem(TKEY)||'system');
 render();
 </script>
 </body>
