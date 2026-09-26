@@ -5,22 +5,23 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Someday to buy · algún día lo compro</title>
 <style>
-  :root{--bg:#0f1115;--card:#181b22;--txt:#e8e8ea;--mut:#8b90a0;--acc:#7cc4a4;--lock:#e0a458}
-  *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt)}
+  :root{--bg:#0f1115;--card:#1c2029;--line:#2e3441;--txt:#f2f3f5;--mut:#b4b9c6;--ph:#9aa0ad;--acc:#7cc4a4;--lock:#e0a458}
+  *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);font-size:17px;line-height:1.5}
   main{max-width:720px;margin:0 auto;padding:40px 20px}
   h1{margin:0;font-size:2rem}p.sub{color:var(--mut);margin:.4rem 0 2rem}
-  form{display:grid;grid-template-columns:2fr 1fr;gap:10px;background:var(--card);padding:16px;border-radius:12px}
-  input{padding:10px;border-radius:8px;border:1px solid #2a2f3a;background:#0f1115;color:var(--txt);font-size:1rem}
+  form{display:grid;grid-template-columns:2fr 1fr;gap:10px;border:1px solid var(--line);background:var(--card);padding:16px;border-radius:12px}
+  input{padding:10px;border-radius:8px;border:1px solid var(--line);background:#12151b;color:var(--txt);font-size:1rem}
+  input::placeholder{color:var(--ph)}
   input.full,button.full{grid-column:1/-1}
-  button{padding:10px 14px;border:0;border-radius:8px;background:var(--acc);color:#0f1115;font-weight:600;cursor:pointer}
-  button:disabled{background:#2a2f3a;color:var(--mut);cursor:not-allowed}
-  .stats{display:flex;gap:16px;color:var(--mut);margin:24px 0 8px;font-size:.9rem}
-  .item{background:var(--card);border-radius:12px;padding:14px 16px;margin:10px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}
-  .item a{color:var(--txt)}.meta{color:var(--mut);font-size:.85rem;margin-top:4px}
-  .bar{height:4px;background:#2a2f3a;border-radius:4px;margin-top:8px;overflow:hidden}.bar i{display:block;height:100%;background:var(--lock)}
+  button{font-size:.95rem;padding:10px 14px;border:0;border-radius:8px;background:var(--acc);color:#0f1115;font-weight:600;cursor:pointer}
+  button:disabled{background:#323846;color:#c3c7d1;cursor:not-allowed}
+  .stats{display:flex;gap:16px;color:var(--mut);margin:24px 0 8px;font-size:.95rem}
+  .item{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:14px 16px;margin:10px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .item a{color:var(--txt)}.meta{color:var(--mut);font-size:.95rem;margin-top:4px}
+  .bar{height:5px;background:#323846;border-radius:4px;margin-top:8px;overflow:hidden}.bar i{display:block;height:100%;background:var(--lock)}
   .ready .bar i{background:var(--acc)}.actions{display:flex;gap:6px;flex-shrink:0}
-  .ghost{background:transparent;color:var(--mut);border:1px solid #2a2f3a}
-  footer{color:var(--mut);font-size:.8rem;margin-top:40px;text-align:center}
+  .ghost{background:transparent;color:var(--txt);border:1px solid #4a5263}
+  footer{color:var(--mut);font-size:.9rem;margin-top:40px;text-align:center}
 </style>
 </head>
 <body>
