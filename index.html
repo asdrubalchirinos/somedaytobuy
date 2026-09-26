@@ -96,7 +96,8 @@ document.getElementById('f').onsubmit=e=>{e.preventDefault();
 function hostOf(u){try{return new URL(u).hostname.replace(/^www\./,'')}catch(_){return u}}
 async function fetchPreview(id,u,useTitle){
   let data=null;
-  try{const ac=new AbortController();setTimeout(()=>ac.abort(),20000);const r=await fetch('https://api.microlink.io/?url='+encodeURIComponent(u),{signal:ac.signal});const j=await r.json();if(j.status==='success')data=j.data;}catch(_){}
+  try{const ac=new AbortController();setTimeout(()=>ac.abort(),15000);const r=await fetch('https://6gx2n2ghqc4kxee4q4f7wsqroy0txwlg.lambda-url.us-east-1.on.aws/?url='+encodeURIComponent(u),{signal:ac.signal});if(r.ok){const j=await r.json();if(j.image||j.title)data={title:j.title,image:j.image?{url:j.image}:null};}}catch(_){}
+  if(!data||!data.image){try{const ac=new AbortController();setTimeout(()=>ac.abort(),20000);const r=await fetch('https://api.microlink.io/?url='+encodeURIComponent(u),{signal:ac.signal});const j=await r.json();if(j.status==='success')data={...j.data,title:(data&&data.title)||j.data.title};}catch(_){}}
   const i=st.items.find(x=>x.id===id); if(!i) return;
   i.loading=false;
   if(data){const pic=(data.image&&data.image.url)||(data.logo&&data.logo.url);if(pic&&!i.image)i.image=pic;if(useTitle&&data.title)i.name=data.title.slice(0,120);}
