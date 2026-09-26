@@ -85,6 +85,7 @@ function render(){
 function escA(s){return esc(String(s)).replace(/'/g,'&#39;')}
 function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 document.getElementById('f').onsubmit=e=>{e.preventDefault();
+  const $=id=>document.getElementById(id), name=$('name'), url=$('url'), img=$('img'), price=$('price');
   const err=document.getElementById('err'), n=name.value.trim(), u=url.value.trim(), im=img.value.trim();
   if(!n && !u){err.textContent='Escribe qué quieres comprar o pega un link.';err.hidden=false;return;}
   if([u,im].some(x=>x&&!/^https?:\/\//i.test(x))){err.textContent='Los links deben empezar con http:// o https://';err.hidden=false;return;}
