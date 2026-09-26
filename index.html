@@ -16,6 +16,7 @@
   @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#f6f7f9;--card:#ffffff;--line:#d9dde4;--input:#ffffff;--txt:#161a21;--mut:#4a5160;--ph:#6b7280;--acc:#1f7a57;--acc-txt:#ffffff;--lock:#b8661a;--dis:#e6e9ee;--dis-txt:#4a5160;--track:#e3e6eb;--ghost:#b9bfca}}
   .theme{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--card);flex-shrink:0}
   footer p{margin:0}
+  .note a{color:var(--txt)}
   .note{color:var(--mut);font-size:.85rem;margin:10px 4px 0;line-height:1.45}
   .thumb{width:72px;height:72px;flex-shrink:0;border-radius:8px;background:#fff;border:1px solid var(--line);object-fit:contain;padding:4px}
   .thumb.ph{display:flex;align-items:center;justify-content:center;background:var(--input);color:var(--mut);font-size:.75rem;padding:4px;text-align:center}
@@ -52,7 +53,7 @@
     <p id="err" class="err" hidden></p>
     <button class="full">Agregar a algún día</button>
   </form>
-  <p class="note" id="privacy">🔒 Tu lista se guarda solo en este navegador. No hay cuentas ni la guardamos en ningún servidor, así que nadie más la ve. Si borras los datos del navegador o entras desde otro dispositivo, no la vas a encontrar. Cuando pegas un link, lo consultamos una sola vez para traer la foto y el nombre del producto.</p>
+  <p class="note" id="privacy">🔒 Tu lista se guarda solo en este navegador. No hay cuentas y nosotros no guardamos nada, así que nadie más la ve. Si borras los datos del navegador o entras desde otro dispositivo, no la vas a encontrar. Un aviso: cuando pegas un link, se lo mandamos a <a href="https://microlink.io/privacy" target="_blank" rel="noopener">Microlink</a>, un servicio externo, para traer la foto y el nombre del producto. Si no quieres eso, deja el link vacío.</p>
   <div class="stats"><span id="s-wait"></span><span id="s-skip"></span></div>
   <div id="list"></div>
   <footer>
@@ -96,18 +97,27 @@ document.getElementById('f').onsubmit=e=>{e.preventDefault();
   if(!n && !u){err.textContent='Escribe qué quieres comprar o pega un link.';err.hidden=false;return;}
   if([u,im].some(x=>x&&!/^https?:\/\//i.test(x))){err.textContent='Los links deben empezar con http:// o https://';err.hidden=false;return;}
   err.hidden=true;
-  const item={id:crypto.randomUUID(),name:n||hostOf(u),price:+price.value||0,url:u,image:im,added:Date.now(),loading:!!(u&&!im)};
+  const item={id:crypto.randomUUID(),name:n||hostOf(u),price:+price.value||0,url:u,image:im,added:Date.now(),loading:!!(u&&!im),autoName:!n};
   st.items.push(item);save();e.target.reset();render();
-  if(item.loading) fetchPreview(item.id,u,!n);
+  if(item.loading) fetchPreview(item.id);
 };
 function hostOf(u){try{return new URL(u).hostname.replace(/^www\./,'')}catch(_){return u}}
-async function fetchPreview(id,u,useTitle){
+const RLKEY='somedaytobuy-microlink-reset';
+async function fetchPreview(id){
+  const i0=st.items.find(x=>x.id===id); if(!i0) return;
   let data=null;
-  try{const ac=new AbortController();setTimeout(()=>ac.abort(),15000);const r=await fetch('https://6gx2n2ghqc4kxee4q4f7wsqroy0txwlg.lambda-url.us-east-1.on.aws/?url='+encodeURIComponent(u),{signal:ac.signal});if(r.ok){const j=await r.json();if(j.image||j.title)data={title:j.title,image:j.image?{url:j.image}:null};}}catch(_){}
-  if(!data||!data.image){try{const ac=new AbortController();setTimeout(()=>ac.abort(),20000);const r=await fetch('https://api.microlink.io/?url='+encodeURIComponent(u),{signal:ac.signal});const j=await r.json();if(j.status==='success')data={...j.data,title:(data&&data.title)||j.data.title};}catch(_){}}
+  if(Date.now()>=(+localStorage.getItem(RLKEY)||0)){
+    try{
+      const r=await fetch('https://api.microlink.io/?url='+encodeURIComponent(i0.url),{signal:AbortSignal.timeout(30000)});
+      const left=r.headers.get('x-rate-limit-remaining'), reset=+r.headers.get('x-rate-limit-reset');
+      if((r.status===429||left==='0')&&reset) localStorage.setItem(RLKEY,reset*1000);
+      if(r.ok){const j=await r.json();if(j.status==='success')data=j.data;}
+    }catch(_){}
+  }
   const i=st.items.find(x=>x.id===id); if(!i) return;
   i.loading=false;
-  if(data){const pic=(data.image&&data.image.url)||(data.logo&&data.logo.url);if(pic&&!i.image)i.image=pic;if(useTitle&&data.title)i.name=data.title.slice(0,120);}
+  if(data){const pic=(data.image&&data.image.url)||(data.logo&&data.logo.url);if(pic&&!i.image)i.image=pic;if(i.autoName&&data.title)i.name=data.title.slice(0,120);}
+  delete i.autoName;
   save();render();
 }
 document.getElementById('list').onclick=e=>{
@@ -128,7 +138,7 @@ function applyTheme(t){
 }
 document.querySelectorAll('[data-theme-set]').forEach(b=>b.onclick=()=>applyTheme(b.dataset.themeSet));
 applyTheme(localStorage.getItem(TKEY)||'system');
-st.items.filter(i=>i.loading).forEach(i=>fetchPreview(i.id,i.url,false));
+st.items.filter(i=>i.loading).forEach(i=>fetchPreview(i.id));
 render();
 </script>
 </body>
