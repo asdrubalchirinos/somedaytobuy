@@ -12,6 +12,9 @@
   @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#f6f7f9;--card:#ffffff;--line:#d9dde4;--input:#ffffff;--txt:#161a21;--mut:#4a5160;--ph:#6b7280;--acc:#1f7a57;--acc-txt:#ffffff;--lock:#b8661a;--dis:#e6e9ee;--dis-txt:#4a5160;--track:#e3e6eb;--ghost:#b9bfca}}
   .theme{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--card);flex-shrink:0}
   footer p{margin:0}
+  .thumb{width:72px;height:72px;flex-shrink:0;border-radius:8px;background:#fff;border:1px solid var(--line);object-fit:contain;padding:4px}
+  .thumb.ph{display:flex;align-items:center;justify-content:center;background:var(--input);color:var(--mut);font-size:.75rem;padding:4px;text-align:center}
+  .err{grid-column:1/-1;color:var(--lock);font-size:.9rem;margin:0}
   .theme button{background:transparent;color:var(--mut);padding:6px 12px;border-radius:999px;font-size:.85rem;font-weight:600}
   .theme button[aria-pressed="true"]{background:var(--txt);color:var(--bg)}
   *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);font-size:17px;line-height:1.5}
@@ -37,9 +40,11 @@
   <h1>Someday to buy</h1>
   <p class="sub">Apunta aquí lo que te tienta comprar. Si en 30 días todavía lo quieres, se desbloquea el botón de comprar.</p>
   <form id="f">
-    <input id="name" placeholder="¿Qué quieres comprar?" required>
+    <input id="name" placeholder="¿Qué quieres comprar?">
     <input id="price" type="number" min="0" step="any" placeholder="Precio (MXN)">
-    <input id="url" class="full" type="url" placeholder="Link (opcional)">
+    <input id="url" class="full" type="url" placeholder="Link del producto (opcional)">
+    <input id="img" class="full" type="url" placeholder="Link de la imagen (opcional, si la foto no sale sola)">
+    <p id="err" class="err" hidden></p>
     <button class="full">Agregar a algún día</button>
   </form>
   <div class="stats"><span id="s-wait"></span><span id="s-skip"></span></div>
@@ -67,8 +72,9 @@ function render(){
     const left=Math.ceil((i.added+DAYS*DAY-now)/DAY), ready=left<=0;
     const pct=Math.min(100,(now-i.added)/(DAYS*DAY)*100);
     const d=document.createElement('div'); d.className='item'+(ready?' ready':'');
-    const title=i.url?`<a href="${i.url}" target="_blank" rel="noopener">${esc(i.name)}</a>`:esc(i.name);
-    d.innerHTML=`<div style="flex:1"><div>${title} <span class="meta">${mxn(i.price)}</span></div>
+    const title=i.url?`<a href="${escA(i.url)}" target="_blank" rel="noopener">${esc(i.name)}</a>`:esc(i.name);
+    const thumb=i.image?`<img class="thumb" src="${escA(i.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" data-pic="${i.id}" title="Clic para cambiar la foto" style="cursor:pointer" onerror="this.outerHTML='<div class=&quot;thumb ph&quot; data-pic=&quot;${i.id}&quot; style=&quot;cursor:pointer&quot;>Sin foto. Clic para agregar</div>'">`:(i.loading?'<div class="thumb ph">Buscando foto…</div>':(i.url?`<div class="thumb ph" data-pic="${i.id}" style="cursor:pointer">Sin foto. Clic para agregar</div>`:''));
+    d.innerHTML=`${thumb}<div style="flex:1;min-width:0"><div>${title} <span class="meta">${mxn(i.price)}</span></div>
       <div class="meta">${ready?'Pasó la prueba. Si todavía lo quieres, adelante.':`Faltan ${left} día${left==1?'':'s'}`}</div>
       <div class="bar"><i style="width:${pct}%"></i></div></div>
       <div class="actions"><button ${ready?'':'disabled'} data-buy="${i.id}">Comprar</button>
@@ -76,11 +82,29 @@ function render(){
     L.appendChild(d);
   });
 }
+function escA(s){return esc(String(s)).replace(/'/g,'&#39;')}
 function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 document.getElementById('f').onsubmit=e=>{e.preventDefault();
-  st.items.push({id:crypto.randomUUID(),name:name.value.trim(),price:+price.value||0,url:url.value.trim(),added:Date.now()});
-  save();e.target.reset();render();};
+  const err=document.getElementById('err'), n=name.value.trim(), u=url.value.trim(), im=img.value.trim();
+  if(!n && !u){err.textContent='Escribe qué quieres comprar o pega un link.';err.hidden=false;return;}
+  if([u,im].some(x=>x&&!/^https?:\/\//i.test(x))){err.textContent='Los links deben empezar con http:// o https://';err.hidden=false;return;}
+  err.hidden=true;
+  const item={id:crypto.randomUUID(),name:n||hostOf(u),price:+price.value||0,url:u,image:im,added:Date.now(),loading:!!(u&&!im)};
+  st.items.push(item);save();e.target.reset();render();
+  if(item.loading) fetchPreview(item.id,u,!n);
+};
+function hostOf(u){try{return new URL(u).hostname.replace(/^www\./,'')}catch(_){return u}}
+async function fetchPreview(id,u,useTitle){
+  let data=null;
+  try{const ac=new AbortController();setTimeout(()=>ac.abort(),20000);const r=await fetch('https://api.microlink.io/?url='+encodeURIComponent(u),{signal:ac.signal});const j=await r.json();if(j.status==='success')data=j.data;}catch(_){}
+  const i=st.items.find(x=>x.id===id); if(!i) return;
+  i.loading=false;
+  if(data){const pic=(data.image&&data.image.url)||(data.logo&&data.logo.url);if(pic&&!i.image)i.image=pic;if(useTitle&&data.title)i.name=data.title.slice(0,120);}
+  save();render();
+}
 document.getElementById('list').onclick=e=>{
+  const p=e.target.dataset.pic;
+  if(p){const i=st.items.find(x=>x.id==p);const v=(prompt('Pega el link de la imagen del producto:',i.image||'')||'').trim();if(v&&/^https?:\/\//i.test(v)){i.image=v;save();render();}return;}
   const b=e.target.dataset.buy,d=e.target.dataset.drop;
   if(b){const i=st.items.find(x=>x.id==b); if(i.url) window.open(i.url,'_blank'); st.items=st.items.filter(x=>x.id!=b);}
   if(d){const i=st.items.find(x=>x.id==d); st.saved+=+i.price||0; st.items=st.items.filter(x=>x.id!=d);}
@@ -96,6 +120,7 @@ function applyTheme(t){
 }
 document.querySelectorAll('[data-theme-set]').forEach(b=>b.onclick=()=>applyTheme(b.dataset.themeSet));
 applyTheme(localStorage.getItem(TKEY)||'system');
+st.items.filter(i=>i.loading).forEach(i=>fetchPreview(i.id,i.url,false));
 render();
 </script>
 </body>
