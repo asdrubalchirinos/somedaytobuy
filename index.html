@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Someday to buy · algún día lo compro</title>
+<style>
+  :root{--bg:#0f1115;--card:#181b22;--txt:#e8e8ea;--mut:#8b90a0;--acc:#7cc4a4;--lock:#e0a458}
+  *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt)}
+  main{max-width:720px;margin:0 auto;padding:40px 20px}
+  h1{margin:0;font-size:2rem}p.sub{color:var(--mut);margin:.4rem 0 2rem}
+  form{display:grid;grid-template-columns:2fr 1fr;gap:10px;background:var(--card);padding:16px;border-radius:12px}
+  input{padding:10px;border-radius:8px;border:1px solid #2a2f3a;background:#0f1115;color:var(--txt);font-size:1rem}
+  input.full,button.full{grid-column:1/-1}
+  button{padding:10px 14px;border:0;border-radius:8px;background:var(--acc);color:#0f1115;font-weight:600;cursor:pointer}
+  button:disabled{background:#2a2f3a;color:var(--mut);cursor:not-allowed}
+  .stats{display:flex;gap:16px;color:var(--mut);margin:24px 0 8px;font-size:.9rem}
+  .item{background:var(--card);border-radius:12px;padding:14px 16px;margin:10px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .item a{color:var(--txt)}.meta{color:var(--mut);font-size:.85rem;margin-top:4px}
+  .bar{height:4px;background:#2a2f3a;border-radius:4px;margin-top:8px;overflow:hidden}.bar i{display:block;height:100%;background:var(--lock)}
+  .ready .bar i{background:var(--acc)}.actions{display:flex;gap:6px;flex-shrink:0}
+  .ghost{background:transparent;color:var(--mut);border:1px solid #2a2f3a}
+  footer{color:var(--mut);font-size:.8rem;margin-top:40px;text-align:center}
+</style>
+</head>
+<body>
+<main>
+  <h1>Someday to buy</h1>
+  <p class="sub">Apunta aquí lo que te tienta comprar. Si en 30 días todavía lo quieres, se desbloquea el botón de comprar.</p>
+  <form id="f">
+    <input id="name" placeholder="¿Qué quieres comprar?" required>
+    <input id="price" type="number" min="0" step="any" placeholder="Precio (MXN)">
+    <input id="url" class="full" type="url" placeholder="Link (opcional)">
+    <button class="full">Agregar a algún día</button>
+  </form>
+  <div class="stats"><span id="s-wait"></span><span id="s-skip"></span></div>
+  <div id="list"></div>
+  <footer>Hecho con un dominio comprado por impulso. Primera víctima de su propia regla.</footer>
+</main>
+<script>
+const DAYS=30, DAY=864e5, KEY='somedaytobuy';
+let st=JSON.parse(localStorage.getItem(KEY)||'{"items":[],"saved":0}');
+const save=()=>localStorage.setItem(KEY,JSON.stringify(st));
+const mxn=n=>n?'$'+Number(n).toLocaleString('es-MX'):'';
+function render(){
+  const now=Date.now(), L=document.getElementById('list'); L.innerHTML='';
+  const waiting=st.items.reduce((a,i)=>a+(+i.price||0),0);
+  document.getElementById('s-wait').textContent=`En espera: ${mxn(waiting)||'$0'}`;
+  document.getElementById('s-skip').textContent=`Ahorrado por arrepentirte: ${mxn(st.saved)||'$0'}`;
+  st.items.sort((a,b)=>a.added-b.added).forEach(i=>{
+    const left=Math.ceil((i.added+DAYS*DAY-now)/DAY), ready=left<=0;
+    const pct=Math.min(100,(now-i.added)/(DAYS*DAY)*100);
+    const d=document.createElement('div'); d.className='item'+(ready?' ready':'');
+    const title=i.url?`<a href="${i.url}" target="_blank" rel="noopener">${esc(i.name)}</a>`:esc(i.name);
+    d.innerHTML=`<div style="flex:1"><div>${title} <span class="meta">${mxn(i.price)}</span></div>
+      <div class="meta">${ready?'Pasó la prueba. Si todavía lo quieres, adelante.':`Faltan ${left} día${left==1?'':'s'}`}</div>
+      <div class="bar"><i style="width:${pct}%"></i></div></div>
+      <div class="actions"><button ${ready?'':'disabled'} data-buy="${i.id}">Comprar</button>
+      <button class="ghost" data-drop="${i.id}">Ya no lo quiero</button></div>`;
+    L.appendChild(d);
+  });
+}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+document.getElementById('f').onsubmit=e=>{e.preventDefault();
+  st.items.push({id:crypto.randomUUID(),name:name.value.trim(),price:+price.value||0,url:url.value.trim(),added:Date.now()});
+  save();e.target.reset();render();};
+document.getElementById('list').onclick=e=>{
+  const b=e.target.dataset.buy,d=e.target.dataset.drop;
+  if(b){const i=st.items.find(x=>x.id==b); if(i.url) window.open(i.url,'_blank'); st.items=st.items.filter(x=>x.id!=b);}
+  if(d){const i=st.items.find(x=>x.id==d); st.saved+=+i.price||0; st.items=st.items.filter(x=>x.id!=d);}
+  save();render();};
+if(!st.items.length && !localStorage.getItem(KEY+'-seeded')){
+  st.items.push({id:'demo',name:'Edifier R1280DB (ejemplo)',price:3099,url:'https://www.amazon.com.mx/dp/B06XGG6MFV',added:Date.now()-12*DAY});
+  localStorage.setItem(KEY+'-seeded','1');save();}
+render();
+</script>
+</body>
+</html>
