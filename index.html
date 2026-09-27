@@ -39,6 +39,7 @@
   .ready .bar i{background:var(--acc)}.actions{display:flex;gap:6px;flex-shrink:0}
   .ghost{background:transparent;color:var(--txt);border:1px solid var(--ghost)}
   footer{display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--mut);font-size:.9rem;margin-top:40px;text-align:center}
+  .linkbtn{background:none;border:0;padding:0;margin-left:6px;color:var(--mut);text-decoration:underline;font:inherit;font-size:.85em;cursor:pointer;width:auto}
 </style>
 </head>
 <body>
@@ -54,7 +55,7 @@
     <button class="full">Agregar a algún día</button>
   </form>
   <p class="note" id="privacy">🔒 Tu lista se guarda solo en este navegador. No hay cuentas y nosotros no guardamos nada, así que nadie más la ve. Si borras los datos del navegador o entras desde otro dispositivo, no la vas a encontrar. Un aviso: cuando pegas un link, se lo mandamos a <a href="https://microlink.io/privacy" target="_blank" rel="noopener">Microlink</a>, un servicio externo, para traer la foto y el nombre del producto. Si no quieres eso, deja el link vacío.</p>
-  <div class="stats"><span id="s-wait"></span><span id="s-skip"></span></div>
+  <div class="stats"><span id="s-wait"></span><span><span id="s-skip"></span> <button type="button" id="reset-saved" class="linkbtn" title="Poner el ahorro en cero" hidden>Reiniciar</button></span></div>
   <div id="list"></div>
   <footer>
     <div class="theme" role="group" aria-label="Tema">
@@ -75,6 +76,7 @@ function render(){
   const waiting=st.items.reduce((a,i)=>a+(+i.price||0),0);
   document.getElementById('s-wait').textContent=`En espera: ${mxn(waiting)||'$0'}`;
   document.getElementById('s-skip').textContent=`Ahorrado por arrepentirte: ${mxn(st.saved)||'$0'}`;
+  document.getElementById('reset-saved').hidden=!(st.saved>0);
   st.items.sort((a,b)=>a.added-b.added).forEach(i=>{
     const left=Math.ceil((i.added+DAYS*DAY-now)/DAY), ready=left<=0;
     const pct=Math.min(100,(now-i.added)/(DAYS*DAY)*100);
@@ -120,6 +122,7 @@ async function fetchPreview(id){
   delete i.autoName;
   save();render();
 }
+document.getElementById('reset-saved').onclick=()=>{if(confirm('¿Poner en $0 lo ahorrado por arrepentirte? Esto no se puede deshacer.')){st.saved=0;save();render();}};
 document.getElementById('list').onclick=e=>{
   const p=e.target.dataset.pic;
   if(p){const i=st.items.find(x=>x.id==p);const v=(prompt('Pega el link de la imagen del producto:',i.image||'')||'').trim();if(v&&/^https?:\/\//i.test(v)){i.image=v;save();render();}return;}
