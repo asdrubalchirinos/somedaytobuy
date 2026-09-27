@@ -40,6 +40,10 @@
   .ghost{background:transparent;color:var(--txt);border:1px solid var(--ghost)}
   footer{display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--mut);font-size:.9rem;margin-top:40px;text-align:center}
   .linkbtn{background:none;border:0;padding:0;margin-left:6px;color:var(--mut);text-decoration:underline;font:inherit;font-size:.85em;cursor:pointer;width:auto}
+  .empty{border:2px dashed var(--line);border-radius:12px;padding:32px 20px;margin:10px 0;text-align:center;color:var(--mut)}
+  .empty svg{width:44px;height:44px;color:var(--acc);margin-bottom:8px}
+  .empty strong{display:block;color:var(--txt);font-size:1.05rem;margin-bottom:4px}
+  .empty p{margin:0;font-size:.95rem}
 </style>
 </head>
 <body>
@@ -77,6 +81,8 @@ function render(){
   document.getElementById('s-wait').textContent=`En espera: ${mxn(waiting)||'$0'}`;
   document.getElementById('s-skip').textContent=`Ahorrado por arrepentirte: ${mxn(st.saved)||'$0'}`;
   document.getElementById('reset-saved').hidden=!(st.saved>0);
+  document.getElementById('s-wait').hidden=!st.items.length;
+  if(!st.items.length){L.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><strong>Todavía no tienes nada en espera</strong><p>La próxima vez que algo te tiente, apúntalo arriba y deja que pasen 30 días.</p></div>`;}
   st.items.sort((a,b)=>a.added-b.added).forEach(i=>{
     const left=Math.ceil((i.added+DAYS*DAY-now)/DAY), ready=left<=0;
     const pct=Math.min(100,(now-i.added)/(DAYS*DAY)*100);
